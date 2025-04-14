@@ -24,7 +24,7 @@ public class BatchConfig {
 //  used on a method to declare a Spring-managed bean.Spring calls the @Bean annotated methods when the application starts. It invokes the method, takes the returned object, and stores it in the ApplicationContext as a bean.
 //  This happens only once (by default, because it's singleton (just like any Component))
 //  we can use @Scope("prototype") with any bean and this will ensure that the bean will be recreated anytime it is required (or needed to be autowired)
-//  📌 The method is not a bean. 📌 The object it returns is the actual Spring Bean.
+//  The method is not a bean. The object it returns is the actual Spring Bean.
 //  while calling the method spring auto-injects the arguments
 //  if multiple same arguments exist spring will through error (NoUniqueBeanDefinitionException) or you might need to use @Primary or @Qualifier annotations
 
@@ -37,7 +37,7 @@ public class BatchConfig {
 //  JobBuilder - Used to create/configure a Job
 //  JobLauncher - Used to start/trigger a Job (used in controller)
 
-    public Job movieJob(JobRepository jobRepository, Step step){ //number and type of argument constant?
+    public Job movieJob(JobRepository jobRepository, Step step){
         return new JobBuilder("movieJob",jobRepository)
                 .start(step)
                 .build();
@@ -60,10 +60,7 @@ public class BatchConfig {
 
     // A Step can have only one tasklet
 
-    // how retry when task failed?
-
     // for Retry - Use retry configurations:
-
     // For Chunk-based:
 
     // .chunk(10)
@@ -99,7 +96,28 @@ public class BatchConfig {
                 .writer(writer)
                 .build();
 
-        // what is the argument type of these reader, processor and writer?
+        // .reader(), .processor() and .writer() accept a bean or instance implementing	ItemReader<T>, ItemProcessor<I, O> and ItemWriter<T> respectively
+        // FlatFileItemReader<T> is an Implementation of ItemReader<T>
+
+        // When you enable multithreading using .taskExecutor(...), Spring Batch can execute multiple chunks in parallel:
+        // Each thread will:
+        //        Call the reader to fetch a chunk of items (e.g., 10 records).
+        //        Pass each item to the processor.
+        //        After processing the chunk, all items are passed to the writer.
+        //        The chunk is then committed as one transaction.
+        // Spring handles synchronization to ensure each thread processes a different set of records, and avoids data corruption or race conditions.
+
+//        In a chunk-oriented step, the flow is:
+//        Step Start →
+//          Repeat:
+//              Read items one by one →
+//              Process each →
+//              After chunk size (e.g., 10 items):
+//                  Write all 10 together
+//                  Commit transaction
+//              Until reader returns null
+//        Step Ends
+
     }
 
 }
